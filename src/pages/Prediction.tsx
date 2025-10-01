@@ -1,0 +1,302 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Upload, ArrowLeft, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+
+interface PredictionResult {
+  prediction: string;
+  confidence: number;
+  heatmapUrl: string;
+  explanationDoctor: string;
+  explanationPatient: string;
+}
+
+const Prediction = () => {
+  const navigate = useNavigate();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<PredictionResult | null>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith("image/")) {
+        setSelectedFile(file);
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+        setResult(null);
+      } else {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image file (PNG, JPG, etc.)",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setResult(null);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
+
+    setIsLoading(true);
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+
+    try {
+      // TODO: Replace with actual backend endpoint
+      const response = await fetch("/predict", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Analysis failed");
+
+      const data = await response.json();
+      setResult(data);
+      
+      toast({
+        title: "Analysis complete",
+        description: "X-ray analysis has been completed successfully.",
+      });
+    } catch (error) {
+      // For demo purposes, show placeholder data
+      setResult({
+        prediction: "Tuberculosis",
+        confidence: 94.7,
+        heatmapUrl: previewUrl, // Placeholder - will be replaced with actual heatmap
+        explanationDoctor: "The model has identified suspicious patterns in the upper right lung field, showing characteristics consistent with active tuberculosis infection. Areas of consolidation and cavitation are visible, suggesting possible tubercular lesions.",
+        explanationPatient: "The AI has detected some areas in your lung X-ray that may need further medical attention. Please consult with your healthcare provider for a detailed examination and appropriate treatment plan.",
+      });
+      
+      toast({
+        title: "Demo Mode",
+        description: "Showing placeholder results. Connect to backend for real analysis.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/")}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </div>
+
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            TB Detection Analysis
+          </h1>
+          <p className="text-muted-foreground">
+            Upload a chest X-ray image for AI-powered tuberculosis detection
+          </p>
+        </div>
+
+        {/* Upload Section */}
+        {!previewUrl && (
+          <Card className="max-w-2xl mx-auto shadow-lg">
+            <CardHeader>
+              <CardTitle>Upload X-Ray Image</CardTitle>
+              <CardDescription>
+                Drag and drop or click to select a chest X-ray image
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                className="border-2 border-dashed border-primary/50 rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer bg-secondary/20"
+                onClick={() => document.getElementById("file-input")?.click()}
+              >
+                <Upload className="h-12 w-12 mx-auto mb-4 text-primary" />
+                <p className="text-lg font-medium mb-2">
+                  Drop your X-ray image here
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  or click to browse files
+                </p>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Analysis Section */}
+        {previewUrl && !result && (
+          <Card className="max-w-2xl mx-auto shadow-lg">
+            <CardHeader>
+              <CardTitle>Ready for Analysis</CardTitle>
+              <CardDescription>
+                Review the image and click analyze to start
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg overflow-hidden bg-muted">
+                <img
+                  src={previewUrl}
+                  alt="Uploaded X-ray"
+                  className="w-full h-auto"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="hero"
+                  size="lg"
+                  onClick={handleAnalyze}
+                  disabled={isLoading}
+                  className="flex-1"
+                >
+                  {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isLoading ? "Analyzing..." : "Analyze X-Ray"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreviewUrl("");
+                  }}
+                >
+                  Upload Different Image
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Results Section */}
+        {result && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Original Image */}
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Original X-Ray</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={previewUrl}
+                      alt="Original X-ray"
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Heatmap */}
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">AI Heatmap Analysis</CardTitle>
+                  <CardDescription>
+                    Highlighted regions of interest
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={result.heatmapUrl}
+                      alt="Heatmap overlay"
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Prediction Details */}
+            <Card className="shadow-lg border-l-4 border-l-primary">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Prediction Results
+                  <span
+                    className={`text-lg px-4 py-1 rounded-full ${
+                      result.prediction === "Normal"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-amber-100 text-amber-800"
+                    }`}
+                  >
+                    {result.prediction}
+                  </span>
+                </CardTitle>
+                <CardDescription>
+                  Confidence: {result.confidence.toFixed(1)}%
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2 text-primary">
+                    Medical Professional View
+                  </h3>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {result.explanationDoctor}
+                  </p>
+                </div>
+                <div className="border-t pt-6">
+                  <h3 className="font-semibold text-lg mb-2 text-primary">
+                    Patient-Friendly Explanation
+                  </h3>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {result.explanationPatient}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => {
+                  setSelectedFile(null);
+                  setPreviewUrl("");
+                  setResult(null);
+                }}
+              >
+                Analyze Another Image
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Prediction;
