@@ -339,7 +339,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For questions, issues, or contributions:
 - **Issues**: Create a GitHub issue
 - **Discussions**: Use GitHub Discussions
-- **Email**: [Your contact information]
+- **Email**: [praveen.hebbal2004@gmail.com]
+-**visit**:[https://my-portfolio-one-theta-42.vercel.app/]
 
 ---
 
