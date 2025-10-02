@@ -68,12 +68,25 @@ const Index = () => {
                 Advanced AI for Healthcare
               </h2>
               <p className="text-lg text-foreground leading-relaxed mb-6">
-                Our model is trained on comprehensive chest X-ray datasets,
-                including the NIAID dataset and a custom collection of 3,000
-                TB-positive and 3,000 normal scans. The system not only predicts
-                whether a scan indicates Normal or Tuberculosis but also provides
-                an explainable heatmap to highlight suspicious regions.
+                Our model is trained on a comprehensive chest X-ray dataset available at{" "}
+                <a 
+                  href="https://drive.google.com/drive/folders/1Z7LVK9Aar3kxPP3QJlUXoxnaFwRg1CxQ?usp=sharing" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-primary/80 underline"
+                >
+                  our cleaned dataset
+                </a>
+                . The system not only predicts whether a scan indicates Normal or Tuberculosis 
+                but also provides an explainable heatmap to highlight suspicious regions.
               </p>
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
+                <p className="text-sm text-amber-800">
+                  <strong>Note:</strong> Our model performs optimally on the specific dataset it was trained on. 
+                  For real-world deployment, comprehensive training on diverse X-ray images from various 
+                  equipment, demographics, and clinical settings would be essential for robust performance.
+                </p>
+              </div>
               <p className="text-lg text-foreground leading-relaxed">
                 This transparency enables healthcare professionals to understand
                 and validate the AI's reasoning, making it a valuable tool for

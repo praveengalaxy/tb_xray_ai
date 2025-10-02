@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 
 interface PredictionResult {
   prediction: string;
-  confidence: number;
+  confidence: number; // percentage 0-100 for UI display
   heatmapUrl: string;
   explanationDoctor: string;
   explanationPatient: string;
@@ -63,8 +63,8 @@ const Prediction = () => {
     formData.append("image", selectedFile);
 
     try {
-      // TODO: Replace with actual backend endpoint
-      const response = await fetch("/predict", {
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const response = await fetch(`${apiBase}/predict`, {
         method: "POST",
         body: formData,
       });
@@ -72,25 +72,42 @@ const Prediction = () => {
       if (!response.ok) throw new Error("Analysis failed");
 
       const data = await response.json();
-      setResult(data);
+      console.log("🔍 Backend response:", data);
+      
+      const heatmapUrl = data.heatmap_url ? `${apiBase}${data.heatmap_url}` : previewUrl;
+      const confidencePct = typeof data.confidence === "number" && data.confidence <= 1 ? data.confidence * 100 : data.confidence;
+
+      const mapped: PredictionResult = {
+        prediction: data.prediction ?? "Unknown",
+        confidence: Number(confidencePct ?? 0),
+        heatmapUrl,
+        explanationDoctor: data.explanation_doctor ?? data.explanation ?? "",
+        explanationPatient: data.explanation_patient ?? data.explanation ?? "",
+      };
+      
+      console.log("🔍 Mapped result for UI:", mapped);
+      setResult(mapped);
       
       toast({
         title: "Analysis complete",
         description: "X-ray analysis has been completed successfully.",
       });
     } catch (error) {
+      console.error("🔍 Prediction error:", error);
+      
       // For demo purposes, show placeholder data
       setResult({
         prediction: "Tuberculosis",
         confidence: 94.7,
-        heatmapUrl: previewUrl, // Placeholder - will be replaced with actual heatmap
+        heatmapUrl: previewUrl,
         explanationDoctor: "The model has identified suspicious patterns in the upper right lung field, showing characteristics consistent with active tuberculosis infection. Areas of consolidation and cavitation are visible, suggesting possible tubercular lesions.",
         explanationPatient: "The AI has detected some areas in your lung X-ray that may need further medical attention. Please consult with your healthcare provider for a detailed examination and appropriate treatment plan.",
       });
       
       toast({
         title: "Demo Mode",
-        description: "Showing placeholder results. Connect to backend for real analysis.",
+        description: `Backend connection failed: ${error}. Showing placeholder results.`,
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
