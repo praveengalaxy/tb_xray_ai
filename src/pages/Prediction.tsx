@@ -115,8 +115,8 @@ const Prediction = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen medical-pattern">
+      <div className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <Button
@@ -130,21 +130,27 @@ const Prediction = () => {
           </Button>
         </div>
 
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <div className="mb-12 text-center">
+          <div className="inline-block px-6 py-3 glass rounded-full mb-6 medical-transition">
+            <span className="text-primary font-semibold text-sm flex items-center gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full pulse-glow"></div>
+              AI-Powered Analysis
+            </span>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">
             TB Detection Analysis
           </h1>
-          <p className="text-muted-foreground">
-            Upload a chest X-ray image for AI-powered tuberculosis detection
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Upload a chest X-ray image for state-of-the-art AI-powered tuberculosis detection with medical-grade explanations
           </p>
         </div>
 
         {/* Upload Section */}
         {!previewUrl && (
-          <Card className="max-w-2xl mx-auto shadow-lg">
-            <CardHeader>
-              <CardTitle>Upload X-Ray Image</CardTitle>
-              <CardDescription>
+          <Card className="max-w-3xl mx-auto medical-card medical-shadow-lg">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-2xl font-bold gradient-text">Upload X-Ray Image</CardTitle>
+              <CardDescription className="text-lg">
                 Drag and drop or click to select a chest X-ray image
               </CardDescription>
             </CardHeader>
@@ -152,14 +158,15 @@ const Prediction = () => {
               <div
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                className="border-2 border-dashed border-primary/50 rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer bg-secondary/20"
+                className="border-2 border-dashed border-primary/50 rounded-2xl p-16 text-center hover:border-primary medical-transition cursor-pointer glass relative overflow-hidden group"
                 onClick={() => document.getElementById("file-input")?.click()}
               >
-                <Upload className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <p className="text-lg font-medium mb-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 medical-transition"></div>
+                <Upload className="h-16 w-16 mx-auto mb-6 text-primary medical-transition group-hover:scale-110" />
+                <p className="text-xl font-semibold mb-3 text-foreground">
                   Drop your X-ray image here
                 </p>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-muted-foreground mb-6">
                   or click to browse files
                 </p>
                 <input
